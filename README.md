@@ -1292,6 +1292,8 @@ Please contribute! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ECC provides Cursor IDE support with hooks, rules, agents, skills, commands, and MCP configs adapted for Cursor's project layout.
 
+Day-to-day usage of a Cursor install in this repo: [docs/CURSOR-USER-MANUAL.md](docs/CURSOR-USER-MANUAL.md).
+
 ### Quick Start (Cursor)
 
 ```bash

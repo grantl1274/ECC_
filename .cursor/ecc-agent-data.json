@@ -1,0 +1,4 @@
+{
+  "agentDataHome": "~/.cursor/ecc",
+  "notes": "Isolates ECC session memory from Claude Code ~/.claude. Do not put secrets here."
+}

@@ -1,252 +1,201 @@
-# Cursor User Manual — ECC Workspace
+# Cursor User Manual — Trimmed ECC Workspace
 
-Practical guide for using this clone of [Everything Claude Code (ECC)](https://github.com/affaan-m/ECC) inside **Cursor**, after a full Cursor-targeted install into `.cursor/`.
+Practical guide for this **trimmed** Cursor pack of [Everything Claude Code (ECC)](https://github.com/affaan-m/ECC), kept to Grant’s daily harness (Revit/C#, TypeScript, Python, web/React).
 
 **Workspace root:** `C:\AI\ECC`  
-**Install surface:** `C:\AI\ECC\.cursor`  
-**ECC version (install state):** 2.0.0
+**Install surface:** `C:\AI\ECC\.cursor` (project pack)  
+**Also installed:** lean plugin `%USERPROFILE%\.cursor\plugins\local\ecc-cleanroom`  
+**Personal fork:** https://github.com/grantl1274/ECC_  
+**Recreate / keep spec:** [PERSONAL-KEEP-RECREATE.md](./PERSONAL-KEEP-RECREATE.md)
 
-This manual describes what is actually present in this workspace, not generic Cursor marketing.
+**Word (.docx):** [CURSOR-USER-MANUAL-TRIMMED.docx](./CURSOR-USER-MANUAL-TRIMMED.docx)
+
+This manual matches the **post-trim** tree. Full upstream ECC catalogs no longer apply to `.cursor/` here.
 
 ---
 
 ## 1. Overview
 
-After the Cursor install, Agent/Composer in this project gets:
+| Surface | Location | Count (trimmed) |
+|---------|----------|-----------------|
+| Agents | `.cursor/agents/ecc-*.md` | **14** |
+| Rules | `.cursor/rules/*.mdc` | **38** |
+| Skills | `.cursor/skills/*/SKILL.md` | **22** |
+| Commands | `.cursor/commands/*.md` | **9** |
+| Hooks | `.cursor/hooks.json` + `.cursor/hooks/*.js` | Wiring + **17** scripts |
+| MCP live config | `.cursor/mcp.json` | Empty `{ "mcpServers": {} }` |
+| Memory pointer | `.cursor/ecc-agent-data.json` | `~/.cursor/ecc` |
 
-| Surface | Location | Count (this workspace) |
-|---------|----------|------------------------|
-| Agents | `.cursor/agents/ecc-*.md` | 67 |
-| Rules | `.cursor/rules/` | 160 |
-| Skills | `.cursor/skills/*/SKILL.md` | 278 skill dirs |
-| Commands | `.cursor/commands/*.md` | 94 |
-| Hooks | `.cursor/hooks.json` + `.cursor/hooks/*.js` | 15 events, 17 hook scripts |
-| MCP live config | `.cursor/mcp.json` | Empty by design (`{ "mcpServers": {} }`) |
-| MCP templates | `.cursor/mcp-configs/` | Template + security note |
-| Memory pointer | `.cursor/ecc-agent-data.json` | Isolates data under `~/.cursor/ecc` |
+**Removed on purpose:** 200+ skills, unused language packs, homelab/marketing/ML domain packs, `mcp-configs/` templates, install-state bookkeeping.
 
-Also present:
+**Two layers:**
 
-- Shared hook/runtime scripts under `.cursor/scripts/` (adapter reuses ECC Node hooks).
-- Repo identity files at the root (`AGENTS.md`, `CLAUDE.md`) that Cursor may still pick up as project context.
-- Extra skills installed via `--skills`: `dmux-workflows`, `skill-comply`.
+1. **Plugin (always-on lean harness):** `ecc-cleanroom` under Cursor local plugins  
+2. **Project pack:** this `.cursor/` DAILY set for C# / TS / Python / React
 
-**Not available as a Cursor-native install module:** dmux/tmux **orchestration runtime** packaging. Cursor already has its own Task/subagent surface. The `dmux-workflows` skill documents external dmux patterns; it does not turn Cursor into dmux. Prefer Cursor Task + ECC agents for in-IDE parallel work.
+User-level MCP (Context7, Revit, etc.) stays in **Cursor Settings → MCP**, not in the empty project `mcp.json`.
 
 ---
 
 ## 2. First steps
 
-1. Open the folder **`C:\AI\ECC`** as the Cursor workspace root (not a parent folder that only contains ECC).
-2. Confirm `.cursor/` is visible at the project root.
-3. If agents, rules, skills, commands, or hooks seem missing after install or pull: **Developer: Reload Window**.
-4. Optional sanity checks (PowerShell):
+1. Open **`C:\AI\ECC`** as the Cursor workspace root.  
+2. Confirm `.cursor/` exists.  
+3. After pull or trim: **Developer: Reload Window**.  
+4. Sanity check (PowerShell):
 
 ```powershell
 Set-Location C:\AI\ECC
-(Get-ChildItem .cursor\agents -File).Count
-(Get-ChildItem .cursor\rules -File).Count
-(Get-ChildItem .cursor\skills -Directory).Count
-(Get-ChildItem .cursor\commands -File).Count
+(Get-ChildItem .cursor\agents -File).Count          # expect 14
+(Get-ChildItem .cursor\rules -File).Count           # expect 38
+(Get-ChildItem .cursor\skills -Directory).Count     # expect 22
+(Get-ChildItem .cursor\commands -File).Count        # expect 9
 Get-Content .cursor\mcp.json
 Get-Content .cursor\ecc-agent-data.json
+Test-Path "$env:USERPROFILE\.cursor\plugins\local\ecc-cleanroom"
 ```
 
-5. Start a chat (Agent/Composer). ECC `common-*` rules with `alwaysApply: true` load automatically. Language rules attach when you edit matching files.
+5. Start Agent/Composer. `common-*` rules load automatically; language rules attach when you edit matching files.
 
 ---
 
-## 3. Agents
+## 3. Agents (14 kept)
 
-### How they work here
-
-- Installed as **`.cursor/agents/ecc-<name>.md`** (e.g. `ecc-planner.md`, `ecc-code-reviewer.md`).
-- The `ecc-` prefix avoids collisions with marketplace or user agents.
-- Inside each file, frontmatter `name:` is usually the short name (`planner`, not `ecc-planner`).
-- Cursor builds differ: some expose project agents in the UI; all files remain usable as **explicit Task/subagent definitions** or `@`-style references.
+Agents live at `.cursor/agents/ecc-<name>.md`. Frontmatter `name:` is usually the short name (`planner`).
 
 ### How to invoke
 
-Use whichever works in your Cursor build:
+- Ask: “Use the **planner** / **code-reviewer** / **csharp-reviewer** …”  
+- Launch a **Task** and point at the agent file  
+- `@`-mention the agent markdown if your Cursor build supports it  
+- Prefer slash commands (`/plan`, `/code-review`, `/build-fix`) when available  
 
-- Ask in chat: “Use the **planner** / **code-reviewer** / **security-reviewer** agent …”
-- Launch a **Task** subagent and point it at the agent file under `.cursor/agents/`.
-- `@`-mention the agent markdown if your build supports attaching files.
-- Slash commands such as `/plan`, `/code-review`, `/build-fix` often drive the same workflows without naming the agent file.
+Expected loop: **plan → TDD → implement → review → security when needed**.
 
-ECC’s always-on agent rule expects proactive use: plan → TDD → review → security when relevant.
+### Full kept list
 
-### Top picks (start here)
-
-| Need | Agent file | Short name |
-|------|------------|------------|
+| Need | File | Short name |
+|------|------|------------|
 | Feature / refactor plan | `ecc-planner.md` | planner |
 | Architecture / boundaries | `ecc-architect.md` | architect |
 | TDD / tests-first | `ecc-tdd-guide.md` | tdd-guide |
-| Quality review after edits | `ecc-code-reviewer.md` | code-reviewer |
+| Quality review | `ecc-code-reviewer.md` | code-reviewer |
 | Vulns / secrets / auth | `ecc-security-reviewer.md` | security-reviewer |
 | Build / type failures | `ecc-build-error-resolver.md` | build-error-resolver |
-| E2E flows | `ecc-e2e-runner.md` | e2e-runner |
 | Dead code cleanup | `ecc-refactor-cleaner.md` | refactor-cleaner |
 | Docs / codemaps | `ecc-doc-updater.md` | doc-updater |
-| Brownfield specs | `ecc-spec-miner.md` | spec-miner |
-| Library/API docs | `ecc-docs-lookup.md` | docs-lookup |
-| Harness cost/reliability | `ecc-harness-optimizer.md` | harness-optimizer |
-| Autonomous loops | `ecc-loop-operator.md` | loop-operator |
+| Library / API docs | `ecc-docs-lookup.md` | docs-lookup |
+| C# / Revit /.NET | `ecc-csharp-reviewer.md` | csharp-reviewer |
+| TypeScript | `ecc-typescript-reviewer.md` | typescript-reviewer |
+| Python | `ecc-python-reviewer.md` | python-reviewer |
+| React review | `ecc-react-reviewer.md` | react-reviewer |
+| React build red | `ecc-react-build-resolver.md` | react-build-resolver |
 
-### Language / stack reviewers (use when editing that stack)
-
-`ecc-typescript-reviewer`, `ecc-python-reviewer`, `ecc-django-reviewer`, `ecc-react-reviewer`, `ecc-vue-reviewer`, `ecc-go-reviewer`, `ecc-rust-reviewer`, `ecc-java-reviewer`, `ecc-kotlin-reviewer`, `ecc-swift-reviewer`, `ecc-cpp-reviewer`, `ecc-csharp-reviewer`, `ecc-php-reviewer`, `ecc-fastapi-reviewer`, `ecc-flutter-reviewer`, plus matching `*-build-resolver` agents when the build is red.
-
-### Other groups (catalog sketch)
-
-- **Quality / analysis:** `ecc-performance-optimizer`, `ecc-silent-failure-hunter`, `ecc-pr-test-analyzer`, `ecc-type-design-analyzer`, `ecc-comment-analyzer`, `ecc-code-simplifier`, `ecc-code-explorer`, `ecc-code-architect`, `ecc-agent-evaluator`
-- **Ops / networks / lab:** `ecc-network-*`, `ecc-homelab-architect`, `ecc-database-reviewer`, `ecc-seo-specialist`, `ecc-healthcare-reviewer`
-- **Open-source pipeline:** `ecc-opensource-forker`, `ecc-opensource-sanitizer`, `ecc-opensource-packager`
-- **Product / media / GAN harness:** `ecc-marketing-agent`, `ecc-gan-planner`, `ecc-gan-generator`, `ecc-gan-evaluator`, `ecc-chief-of-staff`, `ecc-a11y-architect`
-- **ML:** `ecc-mle-reviewer`, `ecc-pytorch-build-resolver`
-
-Full list: every file matching `.cursor/agents/ecc-*.md` (67). Root `AGENTS.md` summarizes many of the same roles without the `ecc-` filename prefix.
+Anything else from upstream ECC agent catalogs (homelab, GAN, healthcare, ML, …) was **deleted** from this project pack. Re-add only via selective install if a live project needs it — see recreate spec.
 
 ---
 
-## 4. Rules
+## 4. Rules (38 kept)
 
-### What they do
+Path: `.cursor/rules/*.mdc`
 
-Rules are standing instructions. They bias planning, coding style, testing, security, and git hygiene without you pasting them each turn.
+### Always-on (`common-*`)
 
-### Layout
+- `common-agents`, `common-code-review`, `common-coding-style`  
+- `common-development-workflow`, `common-git-workflow`, `common-hooks`  
+- `common-patterns`, `common-performance`, `common-security`, `common-testing`  
 
-- Path: `.cursor/rules/`
-- Cursor-native form: YAML frontmatter + body (`.mdc`; some `.md` twins exist from install translation).
-- Frontmatter fields: `description`, optional `globs`, `alwaysApply`.
+### Language packs (glob-scoped)
 
-### Auto-apply vs mention
+| Pack | Use when |
+|------|----------|
+| `csharp-*` | Revit add-ins, .NET |
+| `typescript-*` | Node / TS apps |
+| `python-*` (+ `python-fastapi`) | Scripts / services |
+| `react-*` | React UI |
+| `web-*` | General web coding / design quality |
 
-**Always on** (`alwaysApply: true`) — includes the common set, e.g.:
+React Native packs were removed. No Go/Rust/Java/Swift/… packs remain.
 
-- `common-agents`, `common-coding-style`, `common-development-workflow`, `common-git-workflow`
-- `common-hooks`, `common-patterns`, `common-performance`, `common-security`, `common-testing`
-
-These apply in Agent chat for this project without `@` mentions.
-
-**Glob-scoped** (`alwaysApply: false` + `globs`) — language packs such as:
-
-- `typescript-coding-style.mdc` → `**/*.{ts,tsx,js,jsx}`
-- `python-security.mdc` → `**/*.{py,pyi}`
-- Similar packs for Go, Java, Kotlin, Rust, Swift, PHP, Angular, Vue/Nuxt, Dart, C++, C#, Perl, ArkTS, etc.
-
-They attach when context matches those files. To force a rule when globs do not match, **@-mention** the rule file.
-
-### Practical tip
-
-Do not fight always-on rules with “ignore previous instructions.” Prefer scoped asks (“for this throwaway scratch file, skip TDD”) and expect the agent to still honor security and secret hygiene.
+To force a rule off-glob, **@-mention** the `.mdc` file. Do not fight always-on security/git rules.
 
 ---
 
-## 5. Skills
+## 5. Skills (22 kept)
 
-### How Cursor skills work here
+Each skill: `.cursor/skills/<name>/SKILL.md`
 
-- Each skill lives in `.cursor/skills/<name>/SKILL.md`.
-- Frontmatter `name` / `description` drive discovery; the body is the workflow.
-- Skills activate when you ask for that workflow, when a command points at them, or when the agent matches the description to the task.
-- Discover: browse `.cursor/skills/`, search by domain, or ask “which ECC skill covers X?”
+### Core workflow
 
-High-signal discovery commands in chat:
+| Skill | When |
+|-------|------|
+| `search-first` | Research existing code/docs before inventing |
+| `tdd-workflow` | Tests first, 80%+ coverage mindset |
+| `verification-loop` | Before claiming done |
+| `security-review` / `security-scan` | Auth, secrets, inputs, MCP |
+| `continuous-learning` / `continuous-learning-v2` | Capture durable patterns |
+| `configure-ecc` | Reinstall / verify ECC surfaces |
+| `coding-standards` | Cross-cutting quality |
+| `git-workflow` | Branches, commits, PRs |
+| `context-budget` | Keep context lean |
+| `codebase-onboarding` | New / brownfield repos |
+| `plan-canvas` | Browser plan review (when useful) |
 
-- “Use the **tdd-workflow** skill on …”
-- “Follow **verification-loop** before you claim done.”
-- “Run **configure-ecc** to adjust install.”
+### Stack
 
-### High-value skills
-
-| Skill | When to use |
-|-------|-------------|
-| `tdd-workflow` | New features, bugfixes, coverage expectations |
-| `verification-loop` | Before claiming complete / green |
+| Skill | When |
+|-------|------|
+| `dotnet-patterns` | .NET architecture patterns |
+| `csharp-testing` | C# tests |
+| `python-patterns` / `python-testing` | Python |
+| `frontend-patterns` / `backend-patterns` | Web UI / APIs |
+| `documentation-lookup` | Pair with Context7 MCP |
+| `mcp-server-patterns` | Custom MCP (e.g. Revit) |
 | `e2e-testing` | Critical user journeys |
-| `coding-standards` | Cross-cutting quality bar |
-| `security-scan` / security skills | Auth, uploads, secrets, perimeter |
-| `git-workflow` | Commits, branches, PRs |
-| `frontend-patterns` / `react-patterns` | UI work |
-| `backend-patterns` / `api-design` | Services and APIs |
-| `search-first` / `deep-research` | Research before inventing APIs |
-| `continuous-learning` | Extract reusable patterns from sessions |
-| `configure-ecc` | Reconfigure / verify ECC install |
-| `agent-eval` / `eval-harness` | Measure agent behavior |
-| `dmux-workflows` | External multi-pane dmux orchestration (optional) |
-| `skill-comply` | Measure whether skills/rules are actually followed |
 
-There is **no** `/tdd` command file in this Cursor install; use the **tdd-workflow** skill or the **ecc-tdd-guide** agent instead. Prefer skills-first for new workflows (repo policy); commands remain compatibility entry points.
+There is **no** `/tdd` command; use skill `tdd-workflow` or agent `ecc-tdd-guide`.
 
 ---
 
-## 6. Commands
+## 6. Commands (9 kept)
 
-### How they work
-
-- Files: `.cursor/commands/<name>.md` (94).
-- In chat, type `/` and pick the command (e.g. `/plan`, `/code-review`).
-- Each file has `description` frontmatter; body is the workflow the agent should run.
-- Many commands say “run inline” (no Task) so they stay usable even if agent files are not exposed in the UI.
-
-### Notable commands
+Type `/` in chat:
 
 | Command | Purpose |
 |---------|---------|
-| `/plan` | Requirements, risks, phased plan; wait for confirm before code |
-| `/code-review` | Quality review pass |
+| `/plan` | Requirements, risks, phased plan; confirm before code |
+| `/code-review` | Quality review |
 | `/security-scan` | Security-oriented review |
 | `/build-fix` | Fix build/type errors |
-| `/quality-gate` | Fast quality checklist |
-| `/feature-dev` | End-to-end feature development loop |
-| `/learn` / `/skill-create` | Capture learnings / generate skills |
-| `/ecc-guide` | Orientation to ECC workflows |
-| `/pr` / `/review-pr` | PR create / review helpers |
-| `/react-review`, `/python-review`, `/go-review`, … | Stack-specific review |
-| `/orch-*`, `/multi-*`, `/epic-*` | Larger orchestration-style workflows (prompt recipes; not a Cursor tmux runtime) |
-| `/hookify*` | Project hook customization helpers |
-| `/sessions`, `/save-session`, `/resume-session` | Session persistence helpers |
-
-List all: filenames under `.cursor/commands/` (basename = slash name).
+| `/quality-gate` | Fast done-checklist |
+| `/checkpoint` | Mid-task save / handoff |
+| `/learn` | Capture learnings into skills/rules |
+| `/refactor-clean` | Dead code / cleanup pass |
+| `/ecc-guide` | Orientation to ECC-style workflows |
 
 ---
 
 ## 7. Hooks
 
-### Wiring
+- Manifest: `.cursor/hooks.json`  
+- Entry scripts: `.cursor/hooks/*.js` → shared runtime under `.cursor/scripts/`
 
-- Manifest: `.cursor/hooks.json`
-- Thin wrappers: `.cursor/hooks/*.js` → shared logic via `adapter.js` and `.cursor/scripts/hooks/`
+Expect:
 
-Cursor events installed here include: `sessionStart`, `sessionEnd`, `beforeShellExecution`, `afterShellExecution`, `afterFileEdit`, `beforeMCPExecution`, `afterMCPExecution`, `beforeReadFile`, `beforeSubmitPrompt`, `subagentStart`, `subagentStop`, `beforeTabFileRead`, `afterTabFileEdit`, `preCompact`, `stop`.
+- Block `git … --no-verify`  
+- Warn / block secret patterns in prompts and sensitive file reads  
+- Session memory under `~/.cursor/ecc`  
+- Edit / MCP / subagent logging events as wired  
 
-### What you will notice
+If a command is blocked, fix the request (remove dangerous flags). Do not disable hooks casually.
 
-| Behavior | Event / hook | Effect |
-|----------|--------------|--------|
-| Block `--no-verify` on git | `beforeShellExecution` | Protects commit/push hooks |
-| Dev-server / long-run guidance | `beforeShellExecution` | Tmux-oriented reminders / blocks (behavior inherited from shared hooks) |
-| Git push review nudge | `beforeShellExecution` | Warn before push |
-| Auto-format / tsc / `console.log` warnings | `afterFileEdit` | After edits |
-| Secret patterns in prompts | `beforeSubmitPrompt` | Detect `sk-`, `ghp_`, `AKIA`, etc. |
-| Sensitive file reads | `beforeReadFile` | Warn on `.env`, keys, PEMs |
-| Tab cannot read secrets | `beforeTabFileRead` | Harder block for Tab autocomplete |
-| MCP audit | `beforeMCPExecution` / `afterMCPExecution` | Log / warn on untrusted servers |
-| Session memory load/save | `sessionStart` / `sessionEnd` / `preCompact` / `stop` | Persist context under agent data home |
-| Subagent observability | `subagentStart` / `subagentStop` | Logging |
-
-If a shell command is rejected, remove dangerous flags (e.g. `--no-verify`) or adjust the request; do not disable hooks casually.
+Lean alternative: `ecc-cleanroom` plugin hooks cover a smaller fail-open set (secrets, git safety, memory).
 
 ---
 
 ## 8. MCP
 
-### Live config (intentional empty)
-
-`.cursor/mcp.json` is:
+### Project file (empty on purpose)
 
 ```json
 {
@@ -254,38 +203,15 @@ If a shell command is rejected, remove dangerous flags (e.g. `--no-verify`) or a
 }
 ```
 
-Cursor loads **this** file. Empty means no project MCP servers until you opt in.
+### What you actually use
 
-### Templates (do not paste blindly)
+Configure in **Cursor user MCP settings** (recommended):
 
-- Template: `.cursor/mcp-configs/mcp-servers.json` — placeholder keys (`YOUR_*_HERE`).
-- Security note: `.cursor/mcp-configs/README-SECURITY.txt`
+- **Context7** — library/docs lookup (pairs with `documentation-lookup` / `docs-lookup`)  
+- **user-revit-mcp** — Revit automation  
+- Optional: GitLens / other helpers  
 
-### Safe enable procedure
-
-1. Pick only the servers you need from the template.
-2. Copy entries into `.cursor/mcp.json` under `mcpServers` — **never** copy the whole template with placeholders.
-3. Replace placeholders with real values via **environment variables** or a secret store, not committed secrets.
-4. Reload the Cursor window / MCP servers.
-5. Confirm `beforeMCPExecution` audit is acceptable for your threat model.
-
-Example shape (illustrative — use real env var names your machine provides):
-
-```json
-{
-  "mcpServers": {
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
-    }
-  }
-}
-```
-
-Prefer user-level Cursor MCP settings for personal tokens when the workspace is shared or public.
+Do **not** paste wholesale MCP templates with `YOUR_*_HERE` placeholders. Prefer env vars / secret store. Least privilege: enable one server at a time.
 
 ---
 
@@ -300,140 +226,115 @@ Prefer user-level Cursor MCP settings for personal tokens when the workspace is 
 }
 ```
 
-Effects:
-
-- Session summaries / learned skills from ECC hooks should land under **`~/.cursor/ecc`** (expanded path on Windows: typically `%USERPROFILE%\.cursor\ecc`), not `~/.claude`.
-- The `sessionStart` hook and Cursor-aware hook defaults reinforce `ECC_AGENT_DATA_HOME`.
-- Continuous learning v2 instincts remain separate (`CLV2_HOMUNCULUS_DIR`, default `~/.local/share/ecc-homunculus` where applicable).
-
-To **intentionally share** memory with Claude Code, set `agentDataHome` / `ECC_AGENT_DATA_HOME` to `~/.claude` — not recommended if both harnesses run in parallel.
-
-Do not store API keys in the agent data home.
+- Cursor ECC hooks → `%USERPROFILE%\.cursor\ecc`  
+- Claude Code → `%USERPROFILE%\.claude` (separate)  
+- Never store API keys in agent data home  
 
 ---
 
 ## 10. Day-to-day workflows
 
-### A. New feature (plan → TDD → implement → review)
+### A. New feature
 
-1. `/plan` with the feature description; wait for confirmation.
-2. Ask for **tdd-workflow** or agent **ecc-tdd-guide**: RED tests first.
-3. Implement to green; run project tests.
-4. `/code-review` or Task **ecc-code-reviewer**.
-5. `/security-scan` if auth, data, or network boundary touched.
-6. Commit only when you ask the agent to (ECC/git rules: no surprise commits).
+1. `/plan` — wait for confirm  
+2. `tdd-workflow` or **ecc-tdd-guide** — RED tests  
+3. Implement → green  
+4. `/code-review`  
+5. `/security-scan` if auth / network / files touched  
+6. Commit only when you ask  
 
-### B. Bugfix
+### B. Revit / C#
 
-1. Reproduce; capture failing test first (tdd-guide / tdd-workflow).
-2. Minimal fix; re-run tests.
-3. Short code-review pass on the touched files.
+1. Edit `.cs` files — `csharp-*` rules attach  
+2. Ask **ecc-csharp-reviewer** or use `dotnet-patterns` / `csharp-testing`  
+3. Use Revit MCP for live model actions (user MCP)  
 
-### C. Security pass before push
+### C. Bugfix
 
-1. `/security-scan` on the diff and related entry points.
-2. Task **ecc-security-reviewer** for CRITICAL/HIGH items.
-3. Expect hooks to block `--no-verify` and to warn on secret-like prompts/files.
+1. Failing test first  
+2. Minimal fix  
+3. Short `/code-review` on touched files  
 
-### D. Build is red
+### D. Build red
 
-1. `/build-fix` or **ecc-build-error-resolver** (stack-specific resolver if known).
-2. Fix incrementally; re-run the failing command after each fix.
+1. `/build-fix` or **ecc-build-error-resolver**  
+2. For React build: **ecc-react-build-resolver**  
 
-### E. Skill-driven research / patterns
+### E. Before “done”
 
-1. “Use **search-first** / **deep-research** before proposing a new library.”
-2. Implement with **frontend-patterns** or **backend-patterns** as appropriate.
-3. Optionally `/learn` after a successful session.
-
-### F. Compliance of rules/skills (optional)
-
-1. Use **skill-comply** when you need evidence that agents follow a rule/skill.
-2. Prefer dry-run first; note it is oriented around Claude CLI traces and may need adaptation on Windows/Cursor-only setups.
-
-### G. External parallel agents (optional)
-
-1. Read **dmux-workflows**; install/run dmux outside Cursor if you want tmux panes.
-2. For in-Cursor parallelism, use multiple Tasks / agents instead.
+1. `/quality-gate` or `verification-loop`  
+2. Confirm tests/lints you claim actually ran  
 
 ---
 
 ## 11. Troubleshooting
 
-| Symptom | What to try |
-|---------|-------------|
-| Agents/skills/commands missing | Confirm workspace is `C:\AI\ECC`; Reload Window; recount files under `.cursor/` |
-| Rules not applying | Check `alwaysApply` / `globs`; `@` the rule file; ensure `.cursor/rules` not ignored |
-| Hook blocked a shell command | Read the block reason; remove `--no-verify` or risky patterns; only then consider editing `hooks.json` |
-| MCP servers do not appear | Confirm entries are in **`.cursor/mcp.json`**, not only `mcp-configs/`; reload; check Cursor MCP logs |
-| MCP fails auth | Placeholders left as `YOUR_*_HERE`; fix env and restart MCP |
-| Memory mixed with Claude Code | Verify `.cursor/ecc-agent-data.json` and `%USERPROFILE%\.cursor\ecc`; unset accidental `ECC_AGENT_DATA_HOME=~/.claude` |
-| Agent name not found | Use `ecc-<name>` filenames; short `name` is inside the file |
-| `/tdd` missing | Use skill `tdd-workflow` or agent `ecc-tdd-guide` |
-| Orchestration / dmux “not installed” | Expected for Cursor; use Tasks + agents, or external dmux + `dmux-workflows` skill |
-| Node hook errors | Ensure Node is on PATH; hooks invoke `node .cursor/hooks/...` from the project root |
-
-Install metadata: `.cursor/ecc-install-state.json` (may only list the latest incremental `--skills` ops even when a full tree is present). Trust the filesystem counts above for day-to-day use.
+| Symptom | Try |
+|---------|-----|
+| Agents/skills missing | Workspace = `C:\AI\ECC`; Reload Window; recount (14 / 22 / 9 / 38) |
+| “Missing” upstream agent/skill | Expected after trim — see KEEP list / recreate spec |
+| Rules not applying | Check globs; `@` the `.mdc`; ensure file type matches pack |
+| Hook blocked shell | Remove `--no-verify` / secret patterns |
+| MCP not in project | Use **user** MCP settings; project `mcp.json` is empty by design |
+| Memory mixed with Claude Code | Check `ecc-agent-data.json` → `~/.cursor/ecc` |
+| `/tdd` missing | Use `tdd-workflow` skill or `ecc-tdd-guide` |
 
 ---
 
 ## 12. Safety
 
-- **Never** copy `.cursor/mcp-configs/mcp-servers.json` wholesale into `.cursor/mcp.json`.
-- **Never** commit real tokens, PEMs, or `.env` contents.
-- Treat hook blocks on hook-bypass flags and secret reads as features, not bugs.
-- Template MCP entries with `YOUR_*_HERE` are unsafe if pasted as-is.
-- Do not put secrets in `~/.cursor/ecc`.
-- Prefer least-privilege MCP: enable one server at a time.
-- Official ECC sources only (see root README warning): GitHub `affaan-m/ECC`, npm packages, plugin slug `ecc@ecc`, ecc.tools.
+- Never commit tokens, PEMs, `.env` contents  
+- Treat hook blocks as features  
+- Empty project MCP is intentional — wire servers carefully  
+- Official ECC sources only when reinstalling: `affaan-m/ECC`, npm packages, plugin `ecc@ecc`, ecc.tools  
+- Personal recreate source of truth: `docs/PERSONAL-KEEP-RECREATE.md`  
 
 ---
 
-## Appendix A — Layout map
+## Appendix A — Layout map (trimmed)
 
 ```
 C:\AI\ECC\
-  AGENTS.md                 # Cross-harness agent instructions (repo)
-  CLAUDE.md                 # Claude-oriented project guidance
+  docs\
+    CURSOR-USER-MANUAL.md      # this file
+    CURSOR-USER-MANUAL.docx    # Word export
+    PERSONAL-KEEP-RECREATE.md  # keep / delete / recreate recipe
   .cursor\
-    agents\ecc-*.md         # 67 Cursor-prefixed agents
-    rules\                  # 160 rules (.mdc / .md)
-    skills\<name>\SKILL.md  # 278 skills
-    commands\*.md           # 94 slash commands
-    hooks.json              # Hook event wiring
-    hooks\*.js              # Cursor hook entrypoints + adapter.js
-    scripts\                # Shared Node runtime used by hooks
-    mcp.json                # LIVE MCP (empty)
-    mcp-configs\            # TEMPLATES only
-    ecc-agent-data.json     # Memory root pointer
-    ecc-install-state.json  # Install bookkeeping
-  docs\CURSOR-USER-MANUAL.md  # This file
+    agents\                    # 14 ecc-*.md
+    rules\                     # 38 *.mdc
+    skills\                    # 22 skill dirs
+    commands\                  # 9 *.md
+    hooks.json + hooks\ + scripts\
+    mcp.json                   # empty
+    ecc-agent-data.json
 ```
 
-## Appendix B — Reinstall / refresh (reference)
+## Appendix B — Restore / expand (reference)
 
-From repo root (do not run unless you intend to change the install):
+Do **not** re-run full profile install unless intentional.
+
+Selective expand example:
 
 ```powershell
-# Example from root README — targets Cursor with language packs
-.\install.ps1 --target cursor typescript
+Set-Location C:\AI\ECC
+.\install.ps1 --target cursor --skills deep-research
+# then trim again if noise returns
 ```
 
-Skills add-on example (already applied here for dmux + skill-comply):
+Or restore from recreate spec section 8 prompt.
+
+Lean plugin path:
 
 ```powershell
-.\install.ps1 --target cursor --skills dmux-workflows,skill-comply
+Test-Path "$env:USERPROFILE\.cursor\plugins\local\ecc-cleanroom\.cursor-plugin\plugin.json"
 ```
-
-Prefer reading root README section **Cursor IDE Support** before re-running installers.
 
 ## Appendix C — Related docs
 
-- Root README — **Cursor IDE Support**
-- `docs/architecture/cross-harness.md` — how Cursor fits the ECC harness matrix
-- `hooks/README.md` — deeper Claude/shared hook semantics
-- `the-shortform-guide.md` / `the-longform-guide.md` / `the-security-guide.md` — ECC philosophy and security
+- `docs/PERSONAL-KEEP-RECREATE.md` — KEEP / LIBRARY / DELETE  
+- Root README — Cursor IDE Support (upstream)  
+- `ecc-cleanroom` plugin README under `%USERPROFILE%\.cursor\plugins\local\ecc-cleanroom\`  
 
 ---
 
-*Generated for this workspace’s Cursor install. Counts and paths verified against `C:\AI\ECC\.cursor` at documentation time. Do not treat README marketing counts as authoritative if they diverge from the local tree.*
+*Manual rewritten for the trimmed Cursor pack. Counts verified against `C:\AI\ECC\.cursor` after the personal KEEP trim.*
